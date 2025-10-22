@@ -1,18 +1,18 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Resume rewrite request schema
+export const resumeRewriteRequestSchema = z.object({
+  summary: z.string().min(10, "Summary must be at least 10 characters"),
+  headline: z.string().min(5, "Headline must be at least 5 characters"),
+  jobDescription: z.string().min(20, "Job description must be at least 20 characters"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export type ResumeRewriteRequest = z.infer<typeof resumeRewriteRequestSchema>;
+
+// Resume rewrite response schema
+export const resumeRewriteResponseSchema = z.object({
+  rewrittenSummary: z.string(),
+  rewrittenHeadline: z.string(),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type ResumeRewriteResponse = z.infer<typeof resumeRewriteResponseSchema>;

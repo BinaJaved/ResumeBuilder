@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { ResumeForm } from "@/components/ResumeForm";
 import { ResultsDisplay } from "@/components/ResultsDisplay";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -9,6 +10,7 @@ export default function Home() {
     summary: string;
     headline: string;
   } | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (data: {
     summary: string;
@@ -16,15 +18,37 @@ export default function Home() {
     jobDescription: string;
   }) => {
     setIsLoading(true);
+    setResults(null);
     
-    // TODO: remove mock functionality - Replace with actual API call
-    setTimeout(() => {
-      setResults({
-        summary: "Results-driven software engineer with 5+ years of experience building scalable web applications using React, TypeScript, and Node.js. Proven expertise in cloud architecture, CI/CD pipelines, and agile development. Demonstrated success leading cross-functional teams to deliver high-impact products that improve user engagement by 40%+. Passionate about writing clean, maintainable code and mentoring junior developers.",
-        headline: "Senior Full-Stack Engineer | React & Cloud Architecture Specialist",
+    try {
+      const response = await fetch("/api/resume/rewrite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to rewrite resume");
+      }
+
+      const result = await response.json();
+      setResults({
+        summary: result.rewrittenSummary,
+        headline: result.rewrittenHeadline,
+      });
+    } catch (error) {
+      console.error("Error rewriting resume:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to rewrite resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   return (

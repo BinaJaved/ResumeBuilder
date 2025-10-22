@@ -73,10 +73,18 @@ Respond with JSON in this exact format:
       max_completion_tokens: 2048,
     });
 
-    const result = JSON.parse(response.choices[0].message.content || "{}");
+    const contentString = response.choices[0].message.content;
+    console.log("OpenAI raw response:", contentString);
+    
+    if (!contentString) {
+      throw new Error("Empty response from OpenAI");
+    }
+
+    const result = JSON.parse(contentString);
+    console.log("Parsed OpenAI response:", JSON.stringify(result, null, 2));
 
     if (!result.rewrittenSummary || !result.rewrittenHeadline) {
-      throw new Error("Invalid response format from OpenAI");
+      throw new Error(`Invalid response format from OpenAI. Expected fields: rewrittenSummary, rewrittenHeadline. Got: ${Object.keys(result).join(", ")}`);
     }
 
     return {

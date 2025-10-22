@@ -74,8 +74,13 @@ REWRITTEN HEADLINE:
       max_completion_tokens: 2048,
     });
 
+    console.log("Full OpenAI response:", JSON.stringify(response, null, 2));
+    console.log("Response choices:", response.choices);
+    console.log("First choice:", response.choices[0]);
+    console.log("Message:", response.choices[0]?.message);
+    
     const contentString = response.choices[0].message.content;
-    console.log("OpenAI raw response:", contentString);
+    console.log("OpenAI raw response content:", contentString);
     
     if (!contentString) {
       throw new Error("Empty response from OpenAI");

@@ -83,25 +83,41 @@ export default function Home() {
       <Header />
       <main className="container max-w-5xl mx-auto px-6 py-12">
         <div className="space-y-8">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-semibold tracking-tight">
-              Optimize Your Resume with AI
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Rewrite your resume summary and headline to perfectly match any job description.
-              Get professional, recruiter-friendly content with relevant keywords.
-            </p>
-          </div>
+          {results ? (
+            <>
+              <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                <ResultsDisplay
+                  rewrittenSummary={results.summary}
+                  rewrittenHeadline={results.headline}
+                />
+              </div>
 
-          <ResumeForm onSubmit={handleSubmit} isLoading={isLoading} />
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-semibold tracking-tight">
+                  Optimize Your Resume with AI
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Rewrite your resume summary and headline to perfectly match any job description.
+                  Get professional, recruiter-friendly content with relevant keywords.
+                </p>
+              </div>
 
-          {results && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <ResultsDisplay
-                rewrittenSummary={results.summary}
-                rewrittenHeadline={results.headline}
-              />
-            </div>
+              <ResumeForm onSubmit={handleSubmit} isLoading={isLoading} />
+            </>
+          ) : (
+            <>
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-semibold tracking-tight">
+                  Optimize Your Resume with AI
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Rewrite your resume summary and headline to perfectly match any job description.
+                  Get professional, recruiter-friendly content with relevant keywords.
+                </p>
+              </div>
+
+              <ResumeForm onSubmit={handleSubmit} isLoading={isLoading} />
+            </>
           )}
         </div>
       </main>

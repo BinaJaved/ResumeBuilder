@@ -49,11 +49,13 @@ Instructions:
 - Emphasize relevant skills and experience that match the job requirements
 - Make it compelling and achievement-focused
 
-Respond with JSON in this exact format:
-{
-  "rewrittenSummary": "the rewritten summary here",
-  "rewrittenHeadline": "the rewritten headline here"
-}`;
+Please provide your response in the following format:
+
+REWRITTEN SUMMARY:
+[Your rewritten summary here]
+
+REWRITTEN HEADLINE:
+[Your rewritten headline here]`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -69,7 +71,6 @@ Respond with JSON in this exact format:
           content: prompt,
         },
       ],
-      response_format: { type: "json_object" },
       max_completion_tokens: 2048,
     });
 
@@ -80,16 +81,27 @@ Respond with JSON in this exact format:
       throw new Error("Empty response from OpenAI");
     }
 
-    const result = JSON.parse(contentString);
-    console.log("Parsed OpenAI response:", JSON.stringify(result, null, 2));
+    // Parse the response by extracting sections
+    const summaryMatch = contentString.match(/REWRITTEN SUMMARY:\s*\n([\s\S]*?)(?=\n\nREWRITTEN HEADLINE:|$)/i);
+    const headlineMatch = contentString.match(/REWRITTEN HEADLINE:\s*\n([\s\S]*?)$/i);
 
-    if (!result.rewrittenSummary || !result.rewrittenHeadline) {
-      throw new Error(`Invalid response format from OpenAI. Expected fields: rewrittenSummary, rewrittenHeadline. Got: ${Object.keys(result).join(", ")}`);
+    if (!summaryMatch || !headlineMatch) {
+      console.error("Could not parse response. Content:", contentString);
+      throw new Error("Could not parse OpenAI response format");
     }
 
+    const rewrittenSummary = summaryMatch[1].trim();
+    const rewrittenHeadline = headlineMatch[1].trim();
+
+    if (!rewrittenSummary || !rewrittenHeadline) {
+      throw new Error("Missing summary or headline in OpenAI response");
+    }
+
+    console.log("Successfully parsed:", { rewrittenSummary, rewrittenHeadline });
+
     return {
-      rewrittenSummary: result.rewrittenSummary,
-      rewrittenHeadline: result.rewrittenHeadline,
+      rewrittenSummary,
+      rewrittenHeadline,
     };
   } catch (error: any) {
     console.error("OpenAI API error:", error);

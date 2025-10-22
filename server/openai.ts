@@ -74,16 +74,11 @@ REWRITTEN HEADLINE:
       max_completion_tokens: 4096,
     });
 
-    console.log("Full OpenAI response:", JSON.stringify(response, null, 2));
-    console.log("Response choices:", response.choices);
-    console.log("First choice:", response.choices[0]);
-    console.log("Message:", response.choices[0]?.message);
-    
-    const contentString = response.choices[0].message.content;
-    console.log("OpenAI raw response content:", contentString);
+    const contentString = response.choices[0]?.message?.content;
     
     if (!contentString) {
-      throw new Error("Empty response from OpenAI");
+      console.error("Empty response from OpenAI. Model:", response.model);
+      throw new Error("OpenAI returned an empty response. Please try again.");
     }
 
     // Parse the response by extracting sections
@@ -91,18 +86,16 @@ REWRITTEN HEADLINE:
     const headlineMatch = contentString.match(/REWRITTEN HEADLINE:\s*\n([\s\S]*?)$/i);
 
     if (!summaryMatch || !headlineMatch) {
-      console.error("Could not parse response. Content:", contentString);
-      throw new Error("Could not parse OpenAI response format");
+      console.error("Could not parse response format. Content:", contentString);
+      throw new Error("Could not parse the AI response. Please try again.");
     }
 
     const rewrittenSummary = summaryMatch[1].trim();
     const rewrittenHeadline = headlineMatch[1].trim();
 
     if (!rewrittenSummary || !rewrittenHeadline) {
-      throw new Error("Missing summary or headline in OpenAI response");
+      throw new Error("The AI response was incomplete. Please try again.");
     }
-
-    console.log("Successfully parsed:", { rewrittenSummary, rewrittenHeadline });
 
     return {
       rewrittenSummary,

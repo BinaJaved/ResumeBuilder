@@ -71,7 +71,7 @@ REWRITTEN HEADLINE:
           content: prompt,
         },
       ],
-      max_completion_tokens: 2048,
+      max_completion_tokens: 4096,
     });
 
     console.log("Full OpenAI response:", JSON.stringify(response, null, 2));

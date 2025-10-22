@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { resumeRewriteRequestSchema } from "@shared/schema";
-import { rewriteResume } from "./openai";
+import { rewriteResume, ResumeRewriteError } from "./openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Resume rewrite endpoint
@@ -12,7 +12,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!validationResult.success) {
         return res.status(400).json({
-          error: "Invalid request",
+          error: "validation_error",
+          message: "Invalid request data",
           details: validationResult.error.errors,
         });
       }
@@ -29,9 +30,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json(result);
     } catch (error) {
       console.error("Resume rewrite error:", error);
+      
+      // Handle custom ResumeRewriteError with proper status codes
+      if (error instanceof ResumeRewriteError) {
+        return res.status(error.statusCode).json({
+          error: error.code || "error",
+          message: error.message,
+        });
+      }
+      
+      // Handle unexpected errors
       return res.status(500).json({
-        error: "Failed to rewrite resume",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: "internal_error",
+        message: error instanceof Error ? error.message : "An unexpected error occurred",
       });
     }
   });

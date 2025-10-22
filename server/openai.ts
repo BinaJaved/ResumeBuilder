@@ -14,6 +14,17 @@ export interface ResumeRewriteResponse {
   rewrittenHeadline: string;
 }
 
+export class ResumeRewriteError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number,
+    public code?: string
+  ) {
+    super(message);
+    this.name = "ResumeRewriteError";
+  }
+}
+
 export async function rewriteResume(
   request: ResumeRewriteRequest
 ): Promise<ResumeRewriteResponse> {
@@ -72,10 +83,39 @@ Respond with JSON in this exact format:
       rewrittenSummary: result.rewrittenSummary,
       rewrittenHeadline: result.rewrittenHeadline,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("OpenAI API error:", error);
-    throw new Error(
-      `Failed to rewrite resume: ${error instanceof Error ? error.message : "Unknown error"}`
+    
+    // Handle specific OpenAI errors with appropriate status codes
+    if (error?.status === 429) {
+      throw new ResumeRewriteError(
+        "OpenAI API quota exceeded. Please add credits to your OpenAI account at https://platform.openai.com/account/billing",
+        429,
+        "quota_exceeded"
+      );
+    }
+    
+    if (error?.status === 401) {
+      throw new ResumeRewriteError(
+        "Invalid OpenAI API key. Please check your API key configuration.",
+        401,
+        "invalid_api_key"
+      );
+    }
+    
+    if (error?.status === 503) {
+      throw new ResumeRewriteError(
+        "OpenAI service is temporarily unavailable. Please try again in a moment.",
+        503,
+        "service_unavailable"
+      );
+    }
+    
+    // Generic error
+    throw new ResumeRewriteError(
+      `Failed to rewrite resume: ${error instanceof Error ? error.message : "Unknown error"}`,
+      500,
+      "internal_error"
     );
   }
 }

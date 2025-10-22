@@ -31,7 +31,20 @@ export default function Home() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to rewrite resume");
+        
+        // Provide specific guidance based on error code
+        let description = error.message || "Failed to rewrite resume. Please try again.";
+        let title = "Error";
+        
+        if (error.error === "quota_exceeded") {
+          title = "API Quota Exceeded";
+        } else if (error.error === "invalid_api_key") {
+          title = "Configuration Error";
+        } else if (error.error === "service_unavailable") {
+          title = "Service Unavailable";
+        }
+        
+        throw new Error(JSON.stringify({ title, description }));
       }
 
       const result = await response.json();
@@ -41,9 +54,23 @@ export default function Home() {
       });
     } catch (error) {
       console.error("Error rewriting resume:", error);
+      
+      let title = "Error";
+      let description = "Failed to rewrite resume. Please try again.";
+      
+      if (error instanceof Error) {
+        try {
+          const parsed = JSON.parse(error.message);
+          title = parsed.title;
+          description = parsed.description;
+        } catch {
+          description = error.message;
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to rewrite resume. Please try again.",
+        title,
+        description,
         variant: "destructive",
       });
     } finally {
